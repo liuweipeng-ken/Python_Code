@@ -1,0 +1,32 @@
+import os
+import os.path
+import json
+import csv
+
+# 提取Game Analytic 到处日志中，design品类的数据
+rootdir =r"C:\Users\EDZ\Desktop\166"  # 指明被遍历的文件夹
+a=0
+with open("ata.csv", "a", encoding="utf-8", newline="") as datafile:
+    csvwrite = csv.writer(datafile, dialect="excel")
+    csvwrite.writerow(["用户ID", "事件ID"])
+    names = os.listdir(rootdir)
+    for i in range(0,len(names)):
+        if names[i].endswith(".json"):
+            path = os.path.join(rootdir, names[i])# 获取文件的完整路径
+            f = open(path,"rb")  #读取文件
+            res = f.readlines()  #读取文件条数
+            for line in res:
+                j = json.loads(line)  # 把str转换为json类型
+                data = j["data"]   # 通过键值来提取对应的值
+                #line=a
+                if data["category"] == "design":  # 只提取design类型事件
+                    user_id = data["user_id"]  # 提取userid
+                    events_id = data["event_id"]  # 提取eventid
+                    print(user_id,events_id)
+                    print(type(user_id))
+                    csvwrite.writerow([user_id, events_id])  # 写入csv文件
+                #a+=1
+
+
+#print(len(names))
+#print(type(names))
