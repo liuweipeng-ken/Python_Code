@@ -1,0 +1,79 @@
+# import requests
+# import csv
+# # http://m.maoyan.com/review/v2/comments.json?movieId=248172&userId=-1&offset=0&limit=15&ts=0&type=3
+# # http://m.maoyan.com/review/v2/comments.json?movieId=248172&userId=-1&offset=15&limit=15&ts=1560493850014&type=3
+# # 操作步骤
+# # 1. 通过使用chrome的f12功能，获取手机端链接地址，找到到真正的comments存在的链接
+# # 2. 通过request库获取链接
+#
+# num = 0
+# with open("data.csv", "a", encoding="utf-8", newline="") as datafile:
+#     data = csv.writer(datafile, dialect="excel")  # 注意datafile是文件对象，不能加双引号
+#     data.writerow(["用户名", "评论"])  # 注意writerow的参数需要为list，否则内容会被直接切分
+#     while True:
+#         url="http://m.maoyan.com/review/v2/comments.json?movieId=248172&userId=-1&offset={}" \
+#             "&limit=15&ts=0&type=3".format(num)
+#         print(url)  # 通过字符串格式化来实现字段拼接
+#         content_url = requests.get(url)  # 使用request.get()获取链接内容，request.get().text可以获取到链接的内容，存储为字符串类型
+#
+#         if content_url.status_code == 200:  # 通过url的status_code来判断链接地址是否存在
+#             result = content_url.json()  # json相当于python中的字典，通过键值对来存储数据, array对应list
+#             content = result["data"]["comments"]
+#             for item in content:
+#                 # print(type(item))
+#                 comments = item["content"]
+#                 nickname = item["nick"]
+#                 data.writerow([nickname, comments])
+#         print(type(content))
+#         num += 15
+#         if num > 100:
+#             break
+
+
+
+import jieba
+import PIL
+import scipy.misc
+from imageio import imread    #注意从1.2.0开始，scipy.misc的imread方法已经被废弃，需要使用imageio来操作
+from wordcloud import WordCloud # 注意导入的是大写的WordCloud
+import os
+
+def drawwordcloud(title, savepath="./images"):
+    if not os.path.exists(savepath):
+        os.mkdir(savepath)   # 如果savepath目录不存在，则创建savepath目录，即images文件夹
+
+    wc = WordCloud(font_path='FZSTK.TTF',width=400, height=400, background_color='black', max_words=2000,max_font_size=100,
+                   mask=imread('./images/img2.jpg'))
+    # wc定义词云的一些属性，注意调用字体时，需要把字体放置到对应的目录，backgroup_color用来生成图片的背景色
+
+
+# 处理数据
+
+    comments=[]
+    with open('data.csv',"r",encoding="utf-8") as f:  #通过open读取文件
+        data = f.readlines()[1:]  #通过readlines读取信息，新的信息会被储存为list，然后通过切片排除列名
+        #print(data)
+        for item in data:         #通过for循环提取list里的信息
+            i = item.split(",")   #通过split把用户名和评论切分，切分之后的数据仍旧为list
+
+            if len(i)==2:         #由于存在一列的情况，通过判断，只提取正常同时拥有用户名和评论的信息
+                comment =i[1]     #通过下标提取第二列的评论信息
+                comments.append(comment)   #通过list的append方法来构建新的list
+                #print(comment)
+    comment_after_split= jieba.cut(str(comments))  #使用jieba.cut方法，对文本进行切片，注意使用str把list转换为文本类型
+    words = " ".join(comment_after_split)  #使用文本方法join把jieba切词拼接到一起，类型仍旧为文本
+    print(type(words))#通过空格把
+    wc.generate_from_text(words)      #使用wc.generate_from_text方法把文本组合成词云
+    filepath= savepath+"/"+title+".png"    #通过拼接，设定路径
+    wc.to_file(filepath)   #通过wc的to_file方法存储图片到特定路径
+
+
+
+    print(filepath)
+
+    pass
+
+drawwordcloud("demo")
+
+
+
